@@ -1,207 +1,115 @@
-# n8n Nodes - Apify Actor Template
+# n8n-nodes-fuel-prices-api
 
-This template converts Apify Actors into n8n community nodes. The generation script reads your Actor's input schema and creates the node package structure, which you can then customize and publish.
-Simply provide an Actor ID, and the script generates a complete n8n community node package using your Actor's input schema—ready to customize and publish.
+An [n8n](https://n8n.io/) community node that returns real-time US gas station fuel prices and station details for any ZIP code, city, or GPS coordinate. It is backed by the [Fuel Prices API](https://apify.com/johnvc/fuelprices?fpr=9n7kx3) on [Apify](https://apify.com?fpr=9n7kx3) and bills per result, so there are no subscriptions and no minimums.
 
-[Apify](https://apify.com) is a platform for building, deploying, and publishing web automation tools called Actors, while [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform that connects various services and APIs.
+[Installation](#installation) · [Credentials](#credentials) · [Operations](#operations) · [Output](#output) · [Example workflows](#example-workflows) · [Pricing](#pricing) · [Resources](#resources)
 
----
+## What it does
 
-## Table of Contents
+Give the node a location and a fuel grade, and it returns one item per nearby station with the name, address, distance, cash and credit prices, price timestamps, and ratings. It also works as an **AI Agent tool**, so an agent can look up local fuel prices on demand.
 
-- [Setup](#setup)
-  - [Prerequisites](#️-prerequisites)
-  - [1. Generate Your Node](#1-generate-your-node)
-  - [2. Customize Your Node](#2-customize-your-node)
-    - [Actor schema constants](#actor-schema-constants)
-    - [Node icon](#node-icon)
-    - [Subtitle](#subtitle)
-    - [Node description](#node-description)
-    - [AI tool result filtering](#ai-tool-result-filtering)
-    - [Node discoverability](#node-discoverability)
-- [Development](#development)
-- [Getting help](#getting-help)
+- Search by ZIP code, city name, or `latitude, longitude` coordinates
+- Choose a fuel grade: Regular, Midgrade, Premium, Diesel, E85, or Unleaded 88
+- Choose how much data to return per station: Simplified, Raw, or Selected Fields
+- Coverage is primarily the United States, with some Canadian locations
 
-## Setup
+## Installation
 
-### ⚙️ Prerequisites
+Follow the n8n [community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/):
 
-- Node.js v23.11.1 or higher
-- A valid Apify Actor ID from the [Apify Store](https://apify.com/store)
+1. In n8n, open **Settings > Community Nodes**.
+2. Select **Install**.
+3. Enter `n8n-nodes-fuel-prices-api` as the npm package name.
+4. Agree to the risks of using community nodes, then select **Install**.
 
----
+After it installs, the **Fuel Prices** node appears in the nodes panel.
 
-### 1. Generate Your Node
+> n8n Cloud only allows verified community nodes. Until this node is verified, install it on a self-hosted n8n instance.
 
-Install dependencies:
+## Credentials
 
-```bash
-npm install
-```
+You need a free [Apify account](https://apify.com?fpr=9n7kx3) and an API token.
 
-Run the generation script:
+1. Sign in to the [Apify Console](https://console.apify.com?fpr=9n7kx3).
+2. Open **Settings > Integrations** and copy your **Personal API token**.
+3. In n8n, create a new **Apify API** credential and paste the token.
+4. Use the credential's **Test** button to confirm it works.
 
-```bash
-npm run create-actor-app
-```
+The node also supports **Apify OAuth2** if you prefer to connect that way.
 
-When prompted, enter your Actor ID. Find this in your Actor's console URL, for example, if your Actor page is `https://console.apify.com/actors/aYG0l9s7dbB7j3gbS/input`, the Actor ID is `aYG0l9s7dbB7j3gbS`.
+## Operations
 
-The script fetches your Actor's metadata and input schema, generates node files with proper naming, converts Actor input fields into n8n node parameters, and creates all necessary boilerplate code.
+**Fuel Price > Search** returns fuel prices and station details near a location.
 
-Test the generated node:
+| Parameter | Description |
+| --- | --- |
+| Search Location | ZIP code, city name, or `latitude, longitude` coordinates. Required. |
+| Fuel Type | Regular, Midgrade, Premium, Diesel, E85, or Unleaded 88. Defaults to Regular. |
+| Maximum Data Age (Days) | Only return stations whose prices were reported within this many days. Use `0` for no limit. |
+| Output | How much station data to return: Simplified, Raw, or Selected Fields. |
 
-```bash
-npm run build
-npm run dev
-```
+## Output
 
----
+The API returns more than ten fields per station, so the **Output** parameter lets you choose how much to return:
 
-### 2. Customize Your Node
+- **Simplified** (default): a compact, readable object with the station name, a combined `address`, `distance`, `cashPrice`, `creditPrice`, `priceUnit`, and `starRating`. This mode is also used automatically when the node runs as an AI Agent tool, to keep responses small.
+- **Raw**: every field the API returns for each station, using the original field names below.
+- **Selected Fields**: pick exactly which fields to include.
 
-After generation, your node files will be located in:
-```
-nodes/Apify<YourActorName>/
-```
+Each station is returned as its own n8n item.
 
-For example, if you converted the **Website Content Crawler** Actor, the folder will be:
-```
-nodes/ApifyWebsiteContentCrawler/
-```
+### Fields (Raw and Selected Fields)
 
-#### Customization
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique station identifier |
+| `name` | string | Station name or brand |
+| `distance` | number | Distance from the search location, in miles |
+| `priceUnit` | string | Currency and unit, for example `USD/GAL` |
+| `starRating` | number | Average user rating, 0 to 5 |
+| `ratingsCount` | integer | Number of user ratings |
+| `address_line1` | string | Street address |
+| `address_line2` | string | Secondary address line, if any |
+| `address_locality` | string | City |
+| `address_region` | string | State or region, for example `NY` |
+| `address_postalCode` | string | ZIP or postal code |
+| `price_cash` | number | Cash price per unit |
+| `price_cash_postedTime` | string | When the cash price was reported (ISO 8601) |
+| `price_credit` | number | Credit price per unit |
+| `price_credit_postedTime` | string | When the credit price was reported (ISO 8601) |
 
-The generated code includes five sections labeled with `SNIPPET` comments. Search for `SNIPPET` in your IDE to locate them quickly.
+## Example workflows
 
-##### Actor schema constants
+### 1. Find the cheapest regular gas near a ZIP code
 
-Location: `nodes/Apify{YourActorName}/Apify{YourActorName}.node.ts`
+1. **Manual Trigger**
+2. **Fuel Prices**: set Search Location to `11507`, Fuel Type to `Regular`, Output to `Simplified`.
+3. **Sort**: sort the items by `cashPrice` ascending. The first item is the cheapest station.
 
-The script generates these constants from your Actor's metadata:
+### 2. Daily diesel price watch
 
-```typescript
-export const ACTOR_ID = 'aYG0l9s7dbB7j3gbS'
-export const CLASS_NAME = 'ApifyWebsiteContentCrawler'
-export const DISPLAY_NAME = 'Apify Website Content Crawler'
-export const DESCRIPTION = ''
-```
+1. **Schedule Trigger**: run once a day.
+2. **Fuel Prices**: set Search Location to your city, Fuel Type to `Diesel`.
+3. **Filter** (or **IF**): keep stations where `cashPrice` is below your target.
+4. **Send Email** or **Slack**: notify yourself with the matching stations.
 
-> **Tip:** Change `DISPLAY_NAME` or `DESCRIPTION` to adjust how your node appears in the n8n interface.
+### 3. Let an AI Agent answer fuel questions
 
----
+1. **AI Agent** node.
+2. Attach **Fuel Prices** as a tool.
+3. Ask the agent something like "What is the cheapest diesel near 90210?" The agent calls the node (in Simplified mode) and answers with live prices.
 
-##### Node icon
+## Pricing
 
-Location: `nodes/Apify{YourActorName}/Apify{YourActorName}.node.ts`
+This node calls the [Fuel Prices API](https://apify.com/johnvc/fuelprices?fpr=9n7kx3) on Apify, which is billed **pay-per-result**: about **$0.001 per gas station returned**, with no subscription and no minimums. Apify also includes a free monthly usage tier that covers typical volumes. See the [Actor page](https://apify.com/johnvc/fuelprices?fpr=9n7kx3) for current rates.
 
-The default configuration uses the Apify logo:
+## Resources
 
-```typescript
-icon: 'file:logo.svg'
-```
+- [Fuel Prices API on Apify](https://apify.com/johnvc/fuelprices?fpr=9n7kx3)
+- [npm package](https://www.npmjs.com/package/n8n-nodes-fuel-prices-api)
+- [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
+- [Apify n8n integration guide](https://docs.apify.com/platform/integrations/n8n)
 
-Replace the SVG files in the node directory with your own branding.
+## License
 
----
-
-##### Subtitle
-
-Location: `nodes/Apify{YourActorName}/Apify{YourActorName}.node.ts`
-
-The subtitle appears beneath your node in n8n workflows:
-
-```typescript
-subtitle: 'Run Scraper',
-```
-
-![Actor Subtitle](./docs/actor-subtitle.png)
-
----
-
-##### Node description
-
-Location: `nodes/Apify{YourActorName}/Apify{YourActorName}.node.ts`
-
-This description appears in n8n's node browser:
-
-```typescript
-description: DESCRIPTION,
-```
-
-![Apify Node Description](./docs/node-description.png)
-
----
-
-##### AI tool result filtering
-
-Location: `nodes/Apify{YourActorName}/helpers/genericFunctions.ts`
-
-When your node runs in AI agent workflows, reduce token usage by filtering the returned data:
-
-```typescript
-if (isUsedAsAiTool(this.getNode().type)) {
-  results = results.map((item: any) => ({ markdown: item.markdown }));
-}
-```
-
-AI agents perform better with clean, focused data that takes up less context.
-
----
-
-#### Node discoverability
-
-The `Apify{YourActorName}.node.json` file controls where your node appears in n8n:
-
-```json
-{
-  "categories": ["Data & Storage", "Marketing & Content"],
-  "alias": ["crawler", "scraper", "website", "content"]
-}
-```
-
-Adjust `categories` to match your Actor's purpose and add relevant search keywords to `alias`.
-
-The template includes pre-configured authentication in the `credentials/` directory. Users running n8n locally provide their Apify API token. Users on n8n cloud can authenticate via OAuth2.
-
----
-
-## Development
-
-Start n8n with your custom node:
-
-```bash
-npm run dev
-```
-
-This launches n8n at `http://localhost:5678` with hot reloading enabled. Changes to your node files automatically refresh.
-
-## Getting help
-
-- [Apify API documentation](https://docs.apify.com)
-- [n8n Community Nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
-- [n8n community](https://community.n8n.io/)
-
----
-
-> **Before publishing:** Update placeholder values in [package.json](package.json) (AUTHOR_NAME, AUTHOR_EMAIL, PACKAGE_DESCRIPTION) with your information.
-
----
-
-## Published Nodes
-
-Community nodes built with this template:
-
-| Node | npm Package | Creator |
-|------|-------------|---------|
-| **Facebook Search** | [n8n-nodes-facebook-search-ppr](https://www.npmjs.com/package/n8n-nodes-facebook-search-ppr) | [danek](https://apify.com/danek) |
-| **LinkedIn Profile Enrichment** | [n8n-nodes-linkedin-profile-enrichment](https://www.npmjs.com/package/n8n-nodes-linkedin-profile-enrichment) | [anchor](https://apify.com/anchor) |
-| **Google Ads Scraper** | [n8n-nodes-google-ads-scraper](https://www.npmjs.com/package/n8n-nodes-google-ads-scraper) | [silva95gustavo](https://apify.com/silva95gustavo) |
-| **Skip Trace Scraper** | [n8n-nodes-skip-trace](https://www.npmjs.com/package/n8n-nodes-skip-trace) | [one-api](https://apify.com/one-api) |
-| **Google Search** | [n8n-nodes-google-search-scraper](https://www.npmjs.com/package/n8n-nodes-google-search-scraper) | [compass](https://apify.com/compass) |
-| **Google Maps Scraper** | [n8n-nodes-crawler-google-places](https://www.npmjs.com/package/n8n-nodes-crawler-google-places) | [apify](https://apify.com/apify) |
-| **Hypebridge Actors** | [n8n-nodes-hypebridge-actors](https://www.npmjs.com/package/n8n-nodes-hypebridge-actors) | [hypebridge](https://apify.com/hypebridge) |
-| **TikTok Scraper Ultimate** | [n8n-nodes-tiktok-scraper-ultimate](https://www.npmjs.com/package/n8n-nodes-tiktok-scraper-ultimate) | [novi](https://apify.com/novi) |
-| **TheirStack Actor** | [n8n-nodes-theirstack-actor](https://www.npmjs.com/package/n8n-nodes-theirstack-actor) | [ernesta_labs](https://apify.com/ernesta_labs) |
-
-Built a node with this template? Open a PR to add it to the list!
+[MIT](LICENSE.md)

@@ -1,14 +1,11 @@
 {
-	"node": "n8n-nodes-fuelprices",
+	"node": "n8n-nodes-fuel-prices-api",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": [
-		"Development",
-		"Marketing & Content",
-		"Sales",
+		"Data & Storage",
 		"Analytics",
-		"Utility",
-		"Data & Storage"
+		"Sales"
 	],
 	"resources": {
 		"credentialDocumentation": [
@@ -18,21 +15,20 @@
 		],
 		"primaryDocumentation": [
 			{
-				"url": "https://docs.apify.com/"
+				"url": "https://apify.com/johnvc/fuelprices?fpr=9n7kx3"
 			}
 		]
 	},
 	"alias": [
-		"apify",
-		"actor",
-		"serp",
-		"llm",
-		"ai agent",
-		"scrape",
-		"crawler",
-		"web",
-		"dataset",
-		"search",
-		"data extraction"
+		"fuel",
+		"gas",
+		"gasoline",
+		"petrol",
+		"diesel",
+		"fuel prices",
+		"gas prices",
+		"gas station",
+		"fuel price",
+		"apify"
 	]
 }

@@ -49,7 +49,45 @@ export async function runActorApi(
 	});
 }
 
-export async function runActor(this: IExecuteFunctions, i: number): Promise<INodeExecutionData> {
+/**
+ * Shape a single gas-station dataset item according to the chosen Output mode.
+ * - simplified: a small, LLM-friendly object (also forced when used as an AI tool)
+ * - selected: only the picked fields, using the Actor's own keys
+ * - raw: the item untouched
+ */
+function shapeItem(
+	item: Record<string, any>,
+	mode: string,
+	fields: string[],
+): Record<string, any> {
+	if (mode === 'raw') {
+		return item;
+	}
+	if (mode === 'selected') {
+		const picked: Record<string, any> = {};
+		for (const field of fields) {
+			if (field in item) {
+				picked[field] = item[field];
+			}
+		}
+		return picked;
+	}
+	// simplified
+	const address = [item.address_line1, item.address_locality, item.address_region, item.address_postalCode]
+		.filter(Boolean)
+		.join(', ');
+	return {
+		name: item.name,
+		address,
+		distance: item.distance,
+		cashPrice: item.price_cash,
+		creditPrice: item.price_credit,
+		priceUnit: item.priceUnit,
+		starRating: item.starRating,
+	};
+}
+
+export async function runActor(this: IExecuteFunctions, i: number): Promise<INodeExecutionData[]> {
 	const build = await getDefaultBuild.call(this, ACTOR_ID);
 	const defaultInput = getDefaultInputsFromBuild(build);
 	const mergedInput = buildActorInput(this, i, defaultInput);
@@ -57,18 +95,21 @@ export async function runActor(this: IExecuteFunctions, i: number): Promise<INod
 	const run = await runActorApi.call(this, ACTOR_ID, mergedInput, { waitForFinish: 0 });
 	if (!run?.data?.id) {
 		throw new NodeApiError(this.getNode(), {
-			message: `Run ID not found after running the Actor`,
+			message: 'Run ID not found after starting the Actor',
 		});
 	}
 
 	const runId = run.data.id;
 	const datasetId = run.data.defaultDatasetId;
-	const lastRunData = await pollRunStatus.call(this, runId);
-	const resultData = await getResults.call(this, datasetId);
+	await pollRunStatus.call(this, runId);
+	const items = await getResults.call(this, datasetId);
 
+	let mode = this.getNodeParameter('output', i, 'simplified') as string;
 	if (isUsedAsAiTool(this.getNode().type)) {
-		return { json: { ...resultData } };
+		mode = 'simplified';
 	}
+	const fields = (this.getNodeParameter('fields', i, []) as string[]) ?? [];
 
-	return { json: { ...lastRunData, ...resultData } };
+	const shaped = items.map((item) => shapeItem(item, mode, fields));
+	return this.helpers.returnJsonArray(shaped);
 }

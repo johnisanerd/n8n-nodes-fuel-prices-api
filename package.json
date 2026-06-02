@@ -1,16 +1,34 @@
 {
-	"name": "n8n-nodes-fuelprices",
-	"version": "0.0.0",
-	"description": "PACKAGE_DESCRIPTION",
+	"name": "n8n-nodes-fuel-prices-api",
+	"version": "0.1.0",
+	"description": "Get real-time US gas station fuel prices by ZIP, city, or coordinates. Apify-backed n8n community node, pay-per-result, and usable as an AI agent tool.",
 	"keywords": [
 		"n8n-community-node-package",
 		"n8n-nodes",
-		"n8n"
+		"n8n",
+		"fuel",
+		"gas",
+		"gasoline",
+		"diesel",
+		"petrol",
+		"fuel-prices",
+		"gas-prices",
+		"gas-station",
+		"apify",
+		"ai-tool"
 	],
 	"license": "MIT",
 	"author": {
-		"name": "AUTHOR_NAME",
-		"email": "AUTHOR_EMAIL"
+		"name": "John Cole",
+		"email": "tirade.charge_4v@icloud.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/johnisanerd/n8n-nodes-fuel-prices-api.git"
+	},
+	"homepage": "https://github.com/johnisanerd/n8n-nodes-fuel-prices-api#readme",
+	"bugs": {
+		"url": "https://github.com/johnisanerd/n8n-nodes-fuel-prices-api/issues"
 	},
 	"engines": {
 		"node": ">=18.10"
@@ -21,10 +39,7 @@
 		"build": "n8n-node build",
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",
-		"lint:fix": "n8n-node lint --fix",
-		"merge:api": "npx openapi-merge-cli --config ./openapi.config.json",
-		"test": "WEBHOOK_URL=https://localhost:5678 jest --config jest.config.js",
-		"create-actor-app": "npx tsx scripts/cli.ts"
+		"lint:fix": "n8n-node lint --fix"
 	},
 	"files": [
 		"dist"
@@ -43,12 +58,12 @@
 		"n8n-workflow": "*"
 	},
 	"devDependencies": {
-		"@n8n/node-cli": "^0.32.1",
+		"@n8n/node-cli": "0.32.1",
 		"@types/jest": "^29.5.14",
 		"@types/node": "^24.0.1",
 		"apify-client": "^2.16.0",
 		"chalk": "^5.6.0",
-		"eslint": "^9.29.0",
+		"eslint": "9.29.0",
 		"glob": "^11.0.3",
 		"gulp": "^4.0.2",
 		"jest": "^29.7.0",

@@ -7,7 +7,7 @@ export class ApifyApi implements ICredentialType {
 
 	documentationUrl = 'https://docs.apify.com/platform/integrations/api#api-token';
 
-	icon: Icon = "file:../nodes/ApifyFuelprices/logo.png"
+	icon: Icon = "file:../nodes/ApifyFuelprices/logo.svg"
 
 	properties: INodeProperties[] = [
 		{

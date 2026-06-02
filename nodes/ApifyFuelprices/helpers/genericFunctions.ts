@@ -6,6 +6,7 @@ import {
 	type IHookFunctions,
 	type ILoadOptionsFunctions,
 	type IHttpRequestOptions,
+	type JsonObject,
 } from 'n8n-workflow';
 import { ClassNameCamel, X_PLATFORM_APP_HEADER_ID, X_PLATFORM_HEADER_ID } from '../ApifyFuelprices.node';
 
@@ -71,16 +72,19 @@ export async function apiRequest(
 			options,
 		);
 	} catch (error) {
-		if (error instanceof NodeApiError) throw error;
-
-		if (error.response?.body) {
-			throw new NodeApiError(this.getNode(), error, {
-				message: error.response.body,
-				description: error.message,
+		const apiError = error as JsonObject & {
+			response?: { body?: unknown };
+			message?: string;
+		};
+		const body = apiError.response?.body;
+		if (body) {
+			throw new NodeApiError(this.getNode(), apiError, {
+				message: typeof body === 'string' ? body : JSON.stringify(body),
+				description: apiError.message,
 			});
 		}
 
-		throw new NodeApiError(this.getNode(), error);
+		throw new NodeApiError(this.getNode(), apiError);
 	}
 }
 
@@ -121,21 +125,18 @@ export async function pollRunStatus(
 }
 
 /**
- * Fetch dataset results and optionally trim to markdown for AI tool usage
+ * Fetch the Actor run's dataset items as a plain array (one object per gas station).
+ * The Output-mode shaping (simplified / selected / raw) happens in runActor.
  */
-export async function getResults(this: IExecuteFunctions, datasetId: string): Promise<any> {
+export async function getResults(this: IExecuteFunctions, datasetId: string): Promise<any[]> {
 	const results = await apiRequest.call(this, {
 		method: 'GET',
 		uri: `/v2/datasets/${datasetId}/items`,
 	});
 
-	// SNIPPET 5: AI Agent tool usage optimizations
-	// It might be beneficial to remove fields like run info etc. This helps with the context limits of LLM's
-	// EXAMPLE BELOW: Leaves only relevant markdown result reducing total context usage
-	if (isUsedAsAiTool(this.getNode().type)) {
-		// results = results.map((item: any) => ({ markdown: item.markdown }));
+	if (Array.isArray(results)) {
+		return results;
 	}
-
-	return this.helpers.returnJsonArray(results);
+	return results ? [results] : [];
 }
 
