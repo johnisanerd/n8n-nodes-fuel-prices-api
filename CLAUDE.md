@@ -7,7 +7,7 @@ A template and CLI tool for converting [Apify Actors](https://apify.com/store) i
 ## Repository Structure
 
 ```
-nodes/ApifyActorTemplate/   # Base template node (TypeScript, JSON, SVG)
+nodes/ApifyFuelprices/   # Base template node (TypeScript, JSON, SVG)
 credentials/                # Apify API key and OAuth2 credential definitions
 scripts/                    # CLI generator (cli.ts, setupProject.ts, actorSchemaConverter.ts, etc.)
 docs/                       # Documentation screenshots
@@ -52,7 +52,7 @@ CI runs lint → type-check (`tsc --noEmit`) → build on every push/PR to `main
 
 ## Key Notes for AI Assistants
 
-- `nodes/ApifyActorTemplate/` is the **code template**, not a real node. Do not treat it as a finished integration.
+- `nodes/ApifyFuelprices/` is the **code template**, not a real node. Do not treat it as a finished integration.
 - `package.json` contains literal placeholder strings (`AUTHOR_NAME`, `AUTHOR_EMAIL`, `PACKAGE_DESCRIPTION`); these are intentional and must not be filled in by tooling.
 - The Claude MD Maintenance workflow (`.github/workflows/claude-md-maintenance.yml`) is a reusable workflow from `apify/workflows` triggered on every push to `main`. It keeps this file up to date automatically.
 - The `npm run create-actor-app` command is the primary entry point for end users of this template — it drives the entire scaffolding process.

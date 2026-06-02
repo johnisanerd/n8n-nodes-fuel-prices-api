@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-apify-actor-template",
+	"node": "n8n-nodes-fuelprices",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": [

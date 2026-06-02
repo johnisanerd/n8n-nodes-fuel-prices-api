@@ -7,7 +7,7 @@ import {
 	type ILoadOptionsFunctions,
 	type IHttpRequestOptions,
 } from 'n8n-workflow';
-import { ClassNameCamel, X_PLATFORM_APP_HEADER_ID, X_PLATFORM_HEADER_ID } from '../ApifyActorTemplate.node';
+import { ClassNameCamel, X_PLATFORM_APP_HEADER_ID, X_PLATFORM_HEADER_ID } from '../ApifyFuelprices.node';
 
 /**
  * Extended request options for Apify API calls
